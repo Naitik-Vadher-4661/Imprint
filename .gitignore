@@ -1,0 +1,21 @@
+node_modules/
+dist/
+build/
+.next/
+
+# env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+apps/*/.env
+packages/*/.env
+
+# Prisma
+*.db
+*.db-journal
+
+# OS files
+.DS_Store
+Thumbs.db
