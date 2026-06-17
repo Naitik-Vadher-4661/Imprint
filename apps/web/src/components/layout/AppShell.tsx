@@ -18,10 +18,18 @@ const NAV_ITEMS = [
 export const AppShell = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
   const [userName, setUserName] = React.useState('');
+  const [isAuthenticated, setIsAuthenticated] = React.useState<boolean | null>(null);
 
   React.useEffect(() => {
+    const token = localStorage.getItem('token');
+    setIsAuthenticated(!!token);
     setUserName(localStorage.getItem('userName') || '');
-  }, []);
+
+    const protectedRoutes = ['/dashboard', '/activities', '/insights', '/goals', '/tasks', '/impact', '/city', '/profile'];
+    if (!token && protectedRoutes.includes(pathname)) {
+      window.location.href = '/login';
+    }
+  }, [pathname]);
 
   const isLanding = pathname === '/';
   const isAuth = pathname === '/login' || pathname === '/register' || pathname === '/onboarding';
@@ -41,7 +49,7 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
             </span>
           </Link>
 
-          {!isAuth && (
+          {!isAuth && isAuthenticated && (
             <nav className="hidden md:flex items-center gap-1 overflow-x-auto no-scrollbar">
               {NAV_ITEMS.map((item) => {
                 const isActive = pathname === item.href;
@@ -64,18 +72,18 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
           )}
 
           <div className="flex items-center gap-3">
-            {isAuth ? null : isLanding ? (
-              <>
-                <Link href="/login" className="btn-ghost text-sm">Sign In</Link>
-                <Link href="/register" className="btn-primary text-sm !px-5 !py-2">Get Started</Link>
-              </>
-            ) : (
+            {isAuthenticated === null ? null : isAuth ? null : isAuthenticated ? (
               <Link
                 href="/profile"
                 className="w-9 h-9 rounded-full bg-gradient-to-br from-leaf to-leaf-light flex items-center justify-center text-white font-semibold text-sm shadow-md hover:shadow-lg transition-all hover:scale-105"
               >
                 {initial}
               </Link>
+            ) : (
+              <>
+                <Link href="/login" className="btn-ghost text-sm">Sign In</Link>
+                <Link href="/register" className="btn-primary text-sm !px-5 !py-2">Get Started</Link>
+              </>
             )}
           </div>
         </div>
