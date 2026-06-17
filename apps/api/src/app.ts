@@ -10,7 +10,7 @@ const app = express();
 app.use(helmet());
 app.use(
   cors({
-    origin: config.FRONTEND_URL,
+    origin: config.FRONTEND_URL === '*' ? true : config.FRONTEND_URL,
     credentials: true,
   })
 );
