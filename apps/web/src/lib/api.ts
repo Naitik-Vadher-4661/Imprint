@@ -1,7 +1,18 @@
 import axios from 'axios';
 
+const getBaseURL = () => {
+  const envUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (!envUrl) {
+    return 'http://localhost:4000/api/v1';
+  }
+  if (envUrl.includes('/api/v1')) {
+    return envUrl;
+  }
+  return `${envUrl.replace(/\/$/, '')}/api/v1`;
+};
+
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1',
+  baseURL: getBaseURL(),
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
