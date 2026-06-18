@@ -57,6 +57,7 @@ import dashboardRoutes from './modules/dashboard/dashboard.routes';
 import insightsRoutes from './modules/insights/insights.routes';
 import goalsRoutes from './modules/goals/goals.routes';
 import gamificationRoutes from './modules/gamification/gamification.routes';
+import chatRoutes from './modules/chat/chat.routes';
 import { errorHandler } from './middleware/errorHandler';
 
 // API Routes
@@ -66,6 +67,7 @@ app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/v1/insights', insightsRoutes);
 app.use('/api/v1/goals', goalsRoutes);
 app.use('/api/v1/gamification', gamificationRoutes);
+app.use('/api/v1/chat', chatRoutes);
 
 // Error Handler
 app.use(errorHandler);

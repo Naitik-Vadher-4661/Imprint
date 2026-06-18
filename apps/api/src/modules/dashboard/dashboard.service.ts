@@ -28,17 +28,43 @@ export class DashboardService {
     const profile = await prisma.userProfile.findUnique({ where: { userId } });
     const region = profile?.country || 'global';
     
-    // Mock regional averages per month (in Kg)
-    const regionalAverageMap: Record<string, number> = {
-      'United States': 1400,
-      'India': 150,
-      'global': 400,
-    };
-    let regionalAverageKg = regionalAverageMap[region] || 400;
-    
-    // Scale average based on timeRange
-    if (timeRange === 'week') regionalAverageKg = regionalAverageKg / 4;
-    if (timeRange === 'year') regionalAverageKg = regionalAverageKg * 12;
+    // Get true database average of all users in the same region
+    let regionalAverageKg = 0;
+    try {
+      const regionalUsers = await prisma.userProfile.findMany({
+        where: { country: region },
+        select: { userId: true }
+      });
+      const userIds = regionalUsers.map(u => u.userId);
+
+      if (userIds.length > 0) {
+        const regionalEmissions = await prisma.activity.aggregate({
+          where: {
+            userId: { in: userIds },
+            loggedAt: { gte: startDate }
+          },
+          _sum: { emissionKg: true }
+        });
+        const totalEmissions = regionalEmissions._sum.emissionKg || 0;
+        regionalAverageKg = totalEmissions / userIds.length;
+      }
+    } catch (e) {
+      console.error('Failed to calculate dynamic regional average:', e);
+    }
+
+    // Fallback to static defaults if no regional data is logged yet
+    if (regionalAverageKg <= 0) {
+      const regionalAverageMap: Record<string, number> = {
+        'United States': 1400,
+        'India': 150,
+        'global': 400,
+      };
+      regionalAverageKg = regionalAverageMap[region] || 400;
+      
+      // Scale average based on timeRange
+      if (timeRange === 'week') regionalAverageKg = regionalAverageKg / 4;
+      if (timeRange === 'year') regionalAverageKg = regionalAverageKg * 12;
+    }
 
     // 3. Aggregate Data
     const [totalEmissionsResult, categoryBreakdown, recentActivities] = await Promise.all([

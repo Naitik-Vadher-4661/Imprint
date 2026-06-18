@@ -10,7 +10,7 @@ import { Sparkles } from 'lucide-react';
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<any>({
     country: '',
     householdSize: 1,
     primaryTransport: '',
@@ -27,6 +27,7 @@ export default function OnboardingPage() {
     try {
       await api.patch('/auth/profile', {
         ...formData,
+        householdSize: Number(formData.householdSize) || 1,
         onboardingComplete: true,
       });
       router.push('/dashboard');
@@ -40,9 +41,9 @@ export default function OnboardingPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData((prev: any) => ({
       ...prev,
-      [name]: name === 'householdSize' ? parseInt(value) || 1 : value,
+      [name]: name === 'householdSize' ? (value === '' ? '' : parseInt(value, 10)) : value,
     }));
   };
 

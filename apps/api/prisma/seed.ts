@@ -5,6 +5,7 @@ const prisma = new PrismaClient();
 
 const categories = [
   {
+    id: "11111111-1111-1111-1111-111111111111",
     type: ActivityCategoryType.TRANSPORT,
     name: "Transport",
     slug: "transport",
@@ -13,6 +14,7 @@ const categories = [
     sortOrder: 1,
   },
   {
+    id: "22222222-2222-2222-2222-222222222222",
     type: ActivityCategoryType.FOOD,
     name: "Food",
     slug: "food",
@@ -21,6 +23,7 @@ const categories = [
     sortOrder: 2,
   },
   {
+    id: "33333333-3333-3333-3333-333333333333",
     type: ActivityCategoryType.ENERGY,
     name: "Energy",
     slug: "energy",
@@ -29,6 +32,7 @@ const categories = [
     sortOrder: 3,
   },
   {
+    id: "44444444-4444-4444-4444-444444444444",
     type: ActivityCategoryType.WASTE,
     name: "Waste",
     slug: "waste",

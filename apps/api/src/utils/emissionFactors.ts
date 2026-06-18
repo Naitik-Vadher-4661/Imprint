@@ -1,15 +1,67 @@
 import { redis } from '../config/redis';
 import { prisma } from '../config/database';
 import { MeasurementUnit } from '../types/enums';
+import { config } from '../config/env';
 // In a real implementation we would import from 'climatiq-js'
 // import { Climatiq } from 'climatiq-js';
 
-// Conceptual wrapper for ClimateIQ
+// Real integration wrapper for ClimateIQ
 class ClimateIQService {
-  async getFactor(subcategory: string, region: string): Promise<any> {
-    // This is a stub for the actual API call
-    // return climatiq.estimate({ category: subcategory, region })
-    return null; // returning null falls back to static DB values
+  async getFactor(subcategory: string, region: string): Promise<{ factor: number; unit: string } | null> {
+    if (!config.CLIMATEIQ_API_KEY) return null;
+
+    // Map subcategories to Climatiq activity IDs and parameters
+    const mappings: Record<string, { activityId: string; param: string; unit: string }> = {
+      car_petrol: { activityId: 'passenger_vehicle-vehicle_type_car-fuel_source_petrol', param: 'distance', unit: 'km' },
+      car_diesel: { activityId: 'passenger_vehicle-vehicle_type_car-fuel_source_diesel', param: 'distance', unit: 'km' },
+      car_electric: { activityId: 'passenger_vehicle-vehicle_type_car-fuel_source_electricity', param: 'distance', unit: 'km' },
+      bus: { activityId: 'passenger_vehicle-vehicle_type_bus-fuel_source_na', param: 'distance', unit: 'km' },
+      train: { activityId: 'passenger_vehicle-vehicle_type_train-fuel_source_na', param: 'distance', unit: 'km' },
+      electricity: { activityId: 'electricity-supply', param: 'energy', unit: 'kWh' },
+      natural_gas: { activityId: 'natural_gas-combustion', param: 'energy', unit: 'kWh' },
+      beef: { activityId: 'agriculture-livestock-cattle', param: 'weight', unit: 'kg' },
+      chicken: { activityId: 'agriculture-poultry-chicken', param: 'weight', unit: 'kg' },
+      general_waste: { activityId: 'waste-municipal_solid_waste', param: 'weight', unit: 'kg' },
+    };
+
+    const mapping = mappings[subcategory];
+    if (!mapping) return null;
+
+    try {
+      const payload = {
+        emission_factor: {
+          activity_id: mapping.activityId,
+          region: region === 'global' ? 'US' : region,
+        },
+        parameters: {
+          [mapping.param]: 1,
+          [`${mapping.param}_unit`]: mapping.unit,
+        },
+      };
+
+      const response = await fetch('https://api.climatiq.io/data/v1/estimate', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${config.CLIMATEIQ_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        console.warn(`Climatiq API returned status ${response.status}: ${await response.text()}`);
+        return null;
+      }
+
+      const data: any = await response.json();
+      return {
+        factor: data.co2e,
+        unit: mapping.unit.toUpperCase(),
+      };
+    } catch (err) {
+      console.error('Error fetching from Climatiq API:', err);
+      return null;
+    }
   }
 }
 

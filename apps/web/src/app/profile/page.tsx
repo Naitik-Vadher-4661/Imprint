@@ -69,7 +69,7 @@ export default function ProfilePage() {
     try {
       await api.patch('/auth/profile', {
         ...formData,
-        householdSize: parseInt(formData.householdSize, 10),
+        householdSize: parseInt(formData.householdSize, 10) || 1,
       });
       setSuccessMsg('Profile updated successfully!');
     } catch (err: unknown) {
@@ -168,11 +168,11 @@ export default function ProfilePage() {
                   onChange={handleChange}
                 >
                   <option value="">Select...</option>
-                  <option value="CAR_PETROL">Petrol Car</option>
-                  <option value="CAR_DIESEL">Diesel Car</option>
-                  <option value="CAR_ELECTRIC">Electric Car</option>
-                  <option value="PUBLIC_TRANSIT">Public Transit</option>
-                  <option value="BICYCLE">Bicycle / Walk</option>
+                  <option value="car_petrol">Petrol Car</option>
+                  <option value="car_diesel">Diesel Car</option>
+                  <option value="car_electric">Electric Car</option>
+                  <option value="public_transit">Public Transit</option>
+                  <option value="bicycle_walking">Bicycle / Walk</option>
                 </select>
               </div>
               <div className="flex flex-col gap-1.5 w-full">
@@ -184,11 +184,12 @@ export default function ProfilePage() {
                   onChange={handleChange}
                 >
                   <option value="">Select...</option>
-                  <option value="MEAT_HEAVY">Meat Heavy</option>
-                  <option value="OMNIVORE">Average Omnivore</option>
-                  <option value="PESCATARIAN">Pescatarian</option>
-                  <option value="VEGETARIAN">Vegetarian</option>
-                  <option value="VEGAN">Vegan</option>
+                  <option value="meat_heavy">Meat Heavy</option>
+                  <option value="omnivore">Average Omnivore</option>
+                  <option value="pescatarian">Pescatarian</option>
+                  <option value="flexitarian">Flexitarian</option>
+                  <option value="vegetarian">Vegetarian</option>
+                  <option value="vegan">Vegan</option>
                 </select>
               </div>
             </div>

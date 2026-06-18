@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Leaf, LayoutDashboard, ListPlus, Sparkles, Target, Award, Globe, Building2 } from 'lucide-react';
+import { Chatbot } from '../features/chat/Chatbot';
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -90,8 +91,9 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
       </header>
 
       {/* ─── Main ─── */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-8 relative">
         {children}
+        {!isAuth && isAuthenticated && <Chatbot />}
       </main>
 
       {/* ─── Footer ─── */}

@@ -22,6 +22,7 @@ export default function InsightsPage() {
   const [insights, setInsights] = useState<Insight[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   const fetchInsights = async () => {
     try {
@@ -40,11 +41,14 @@ export default function InsightsPage() {
 
   const generateInsights = async () => {
     setIsGenerating(true);
+    setErrorMsg('');
     try {
       await api.post('/insights/generate');
       await fetchInsights();
-    } catch (error) {
-      console.error('Failed to generate insights', error);
+    } catch (err: any) {
+      console.error('Failed to generate insights', err);
+      const msg = err.response?.data?.error?.message || 'Failed to generate insights. Please try again.';
+      setErrorMsg(msg);
     } finally {
       setIsGenerating(false);
     }
@@ -111,6 +115,18 @@ export default function InsightsPage() {
           </Button>
         </div>
       </div>
+
+      {errorMsg && (
+        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl flex items-center justify-between text-sm animate-fade-in">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold">Note:</span>
+            <span>{errorMsg}</span>
+          </div>
+          <button onClick={() => setErrorMsg('')} className="text-red-500 hover:text-red-700 font-bold ml-4">
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {insights.length === 0 ? (
         <Card className="border-dashed border-2 border-gray-200 bg-gray-50/50">

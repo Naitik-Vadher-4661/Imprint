@@ -25,6 +25,8 @@ const ProfileSchema = z.object({
   householdSize: z.number().or(z.string()).optional(),
   primaryTransport: z.string().optional(),
   dietType: z.string().optional(),
+  dietaryPreference: z.string().optional(),
+  onboardingComplete: z.boolean().optional(),
 });
 
 router.get('/profile', authenticate, AuthController.getProfile);

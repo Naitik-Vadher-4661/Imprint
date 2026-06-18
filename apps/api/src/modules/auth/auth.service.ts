@@ -67,13 +67,15 @@ export class AuthService {
   }
 
   static async updateProfile(userId: string, data: any) {
+    const diet = data.dietType || data.dietaryPreference;
     const profile = await prisma.userProfile.update({
       where: { userId },
       data: {
         country: data.country,
         householdSize: data.householdSize ? Number(data.householdSize) : undefined,
-        primaryTransport: data.primaryTransport,
-        dietaryPreference: data.dietType,
+        primaryTransport: data.primaryTransport ? data.primaryTransport.toLowerCase() : undefined,
+        dietaryPreference: diet ? diet.toLowerCase() : undefined,
+        onboardingComplete: data.onboardingComplete !== undefined ? !!data.onboardingComplete : undefined,
       },
     });
     return { profile };

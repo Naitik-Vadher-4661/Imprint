@@ -16,7 +16,10 @@ export class InsightsService {
       })
     ]);
 
-    if (!user || activities.length === 0) return null;
+    if (!user) return null;
+    if (activities.length === 0) {
+      throw { statusCode: 400, code: 'NO_ACTIVITIES', message: 'You must log at least one activity first to generate AI insights.' };
+    }
 
     // 2. Prepare context for AI prompt
     const activitySummary = activities.map(a => `${a.category.name}: ${a.value}${a.unit} (${a.emissionKg}kg CO2e)`).join('\n');
