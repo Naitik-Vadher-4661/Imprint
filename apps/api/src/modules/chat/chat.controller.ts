@@ -4,6 +4,7 @@ import { prisma } from '../../config/database';
 import { DashboardService } from '../dashboard/dashboard.service';
 import { AiProvider } from '../../utils/aiProvider';
 import { sendSuccess } from '../../utils/apiResponse';
+import { AppError } from '../../utils/AppError';
 
 export class ChatController {
   static async chat(req: AuthRequest, res: Response, next: NextFunction) {
@@ -11,8 +12,13 @@ export class ChatController {
       const { message, history } = req.body;
       const userId = req.user!.userId;
 
-      if (!message) {
-        throw { statusCode: 400, code: 'MISSING_MESSAGE', message: 'Message is required' };
+      let sanitizedMessage = '';
+      if (typeof message === 'string') {
+        sanitizedMessage = message.replace(/[\u0000-\u001F\u007F-\u009F]/g, "").trim().substring(0, 2000);
+      }
+
+      if (!sanitizedMessage) {
+        throw AppError.badRequest('Message is required', 'MISSING_MESSAGE');
       }
 
       // Fetch user profile and user info
@@ -28,11 +34,15 @@ export class ChatController {
       let summaryText = '';
       try {
         const summary = await DashboardService.getSummary(userId, 'month');
+        const total = summary.totalEmissionKg || 0;
+        const avg = summary.regionalAverageKg || 0;
+        const comparisonPercentage = avg > 0 ? ((total - avg) / avg) * 100 : 0;
+
         summaryText = `
 User's Monthly Carbon Footprint Stats:
-- Total Emissions: ${summary.totalEmissions?.toFixed(1) || 0} kg CO2e
-- Regional Average: ${summary.regionalAverage?.toFixed(1) || 0} kg CO2e
-- Comparison: ${summary.comparisonPercentage ? `${summary.comparisonPercentage > 0 ? '+' : ''}${summary.comparisonPercentage.toFixed(1)}%` : '0%'} compared to regional average
+- Total Emissions: ${total.toFixed(1)} kg CO2e
+- Regional Average: ${avg.toFixed(1)} kg CO2e
+- Comparison: ${comparisonPercentage ? `${comparisonPercentage > 0 ? '+' : ''}${comparisonPercentage.toFixed(1)}%` : '0%'} compared to regional average
 - Category breakdown:
 ${summary.categoryBreakdown?.map((c: any) => `  * ${c.category}: ${c.totalKg?.toFixed(1) || 0} kg CO2e`).join('\n') || '  No logged emissions.'}
 `;
@@ -61,16 +71,26 @@ Conversation Guidelines:
 - If they ask how to start: tell them to click the "Log Activity" button on the dashboard to log a ride/food/energy consumption, or go to the "Weekly Tasks" page to complete sustainability challenges.
 - Never make up information. If you don't know the answer, politely guide them to app features.`;
 
+      // Sanitize history and enforce structure
+      let sanitizedHistory: Array<{ role: 'user' | 'assistant'; content: string }> = [];
+      if (history && Array.isArray(history)) {
+        sanitizedHistory = history
+          .filter((h: any) => h && typeof h.content === 'string' && (h.role === 'user' || h.role === 'assistant'))
+          .map((h: any) => ({
+            role: h.role,
+            content: h.content.replace(/[\u0000-\u001F\u007F-\u009F]/g, "").trim().substring(0, 2000)
+          }));
+      }
+
       // Build chat conversation prompt including history
       let prompt = '';
-      if (history && Array.isArray(history)) {
-        // Format history for context. Expected format: [{ role: 'user' | 'assistant', content: string }]
-        const formattedHistory = history
-          .map((h: any) => `${h.role === 'user' ? 'User' : 'Assistant'}: ${h.content}`)
+      if (sanitizedHistory.length > 0) {
+        const formattedHistory = sanitizedHistory
+          .map((h) => `${h.role === 'user' ? 'User' : 'Assistant'}: ${h.content}`)
           .join('\n');
-        prompt = `${formattedHistory}\nUser: ${message}\nAssistant:`;
+        prompt = `${formattedHistory}\nUser: ${sanitizedMessage}\nAssistant:`;
       } else {
-        prompt = `User: ${message}\nAssistant:`;
+        prompt = `User: ${sanitizedMessage}\nAssistant:`;
       }
 
       const reply = await AiProvider.generateText(prompt, systemInstruction);
@@ -81,3 +101,4 @@ Conversation Guidelines:
     }
   }
 }
+

@@ -5,16 +5,24 @@ import path from 'path';
 // Load .env from project root
 dotenv.config({ path: path.resolve(__dirname, '../../../../.env') });
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().default('4000').transform(Number),
   FRONTEND_URL: z.string().default('*'),
   
-  DATABASE_URL: z.string().url().catch('postgres://user:pass@localhost:5432/db'),
+  DATABASE_URL: isProduction
+    ? z.string().url()
+    : z.string().url().catch('postgres://user:pass@localhost:5432/db'),
   REDIS_URL: z.string().catch(''),
   
-  JWT_SECRET: z.string().catch('default_secret_key_needs_to_be_long_enough'),
-  JWT_REFRESH_SECRET: z.string().catch('default_refresh_secret_key_needs_to_be_long_enough'),
+  JWT_SECRET: isProduction
+    ? z.string().min(32, { message: "JWT_SECRET must be at least 32 characters long in production" })
+    : z.string().catch('default_secret_key_needs_to_be_long_enough'),
+  JWT_REFRESH_SECRET: isProduction
+    ? z.string().min(32, { message: "JWT_REFRESH_SECRET must be at least 32 characters long in production" })
+    : z.string().catch('default_refresh_secret_key_needs_to_be_long_enough'),
   JWT_ACCESS_TTL: z.string().default('15m'),
   JWT_REFRESH_TTL: z.string().default('7d'),
   
@@ -47,3 +55,4 @@ if (!parsed.success) {
 }
 
 export const config = parsed.data;
+

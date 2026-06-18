@@ -1,6 +1,7 @@
 import { prisma } from '../../config/database';
 import { CarbonCalculator } from '../../utils/carbonCalculator';
 import { CreateActivityInput, UpdateActivityInput } from './activity.schema';
+import { AppError } from '../../utils/AppError';
 
 export class ActivityService {
   static async createActivity(userId: string, data: CreateActivityInput) {
@@ -60,7 +61,7 @@ export class ActivityService {
     const activity = await prisma.activity.findUnique({ where: { id: activityId } });
     
     if (!activity || activity.userId !== userId) {
-      throw { statusCode: 404, code: 'NOT_FOUND', message: 'Activity not found' };
+      throw AppError.notFound('Activity not found');
     }
 
     await prisma.activity.delete({ where: { id: activityId } });
@@ -69,3 +70,4 @@ export class ActivityService {
     return { success: true };
   }
 }
+

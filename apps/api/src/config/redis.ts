@@ -1,7 +1,7 @@
 import Redis from 'ioredis';
 import { config } from './env';
 
-let redisClient: any = null;
+let redisClient: Redis | null = null;
 let isConnected = false;
 
 // Check if REDIS_URL is valid and not a placeholder or HTTP URL
@@ -17,7 +17,7 @@ if (isValidRedisUrl(config.REDIS_URL)) {
       console.log('✅ Connected to Redis successfully');
       isConnected = true;
     });
-    redisClient.on('error', (err: any) => {
+    redisClient.on('error', (err: Error) => {
       console.error('❌ Redis Connection Error:', err);
       isConnected = false;
     });
@@ -60,10 +60,11 @@ export const redis = {
     }
     return 'OK';
   },
-  on: (event: string, handler: Function) => {
+  on: (event: string, handler: (...args: any[]) => void) => {
     if (redisClient) {
       redisClient.on(event, handler);
     }
   }
 };
+
 

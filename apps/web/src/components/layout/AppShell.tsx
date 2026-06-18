@@ -38,10 +38,17 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <a
+        href="#main-content"
+        className="absolute left-4 top-0 z-[100] -translate-y-full rounded-b-md bg-forest px-4 py-2 text-white transition-transform duration-200 focus:translate-y-0 font-medium"
+      >
+        Skip to main content
+      </a>
+
       {/* ─── Navbar ─── */}
       <header className="sticky top-0 z-50 glass border-b border-white/30 animate-slide-down">
         <div className="max-w-7xl mx-auto px-6 flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5 group">
+          <Link href="/" aria-label="Imprint Home" className="flex items-center gap-2.5 group">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-forest to-leaf flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
               <Leaf className="w-5 h-5 text-white" />
             </div>
@@ -51,7 +58,7 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
           </Link>
 
           {!isAuth && isAuthenticated && (
-            <nav className="hidden md:flex items-center gap-1 overflow-x-auto no-scrollbar">
+            <nav aria-label="Primary Navigation" className="hidden md:flex items-center gap-1 overflow-x-auto no-scrollbar">
               {NAV_ITEMS.map((item) => {
                 const isActive = pathname === item.href;
                 return (
@@ -76,6 +83,7 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
             {isAuthenticated === null ? null : isAuth ? null : isAuthenticated ? (
               <Link
                 href="/profile"
+                aria-label="View Profile"
                 className="w-9 h-9 rounded-full bg-gradient-to-br from-leaf to-leaf-light flex items-center justify-center text-white font-semibold text-sm shadow-md hover:shadow-lg transition-all hover:scale-105"
               >
                 {initial}
@@ -91,10 +99,11 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
       </header>
 
       {/* ─── Main ─── */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-8 relative">
+      <main id="main-content" className="flex-1 max-w-7xl w-full mx-auto px-6 py-8 relative">
         {children}
         {!isAuth && isAuthenticated && <Chatbot />}
       </main>
+
 
       {/* ─── Footer ─── */}
       <footer className="border-t border-leaf-pale/30 py-6 mt-auto">

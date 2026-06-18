@@ -1,4 +1,5 @@
 import { prisma } from '../../config/database';
+import { AppError } from '../../utils/AppError';
 
 export class GamificationService {
   static async getTasks() {
@@ -26,7 +27,7 @@ export class GamificationService {
 
   static async acceptTask(userId: string, presetId: string) {
     const preset = await prisma.goalPreset.findUnique({ where: { id: presetId } });
-    if (!preset) throw new Error('Task not found');
+    if (!preset) throw AppError.notFound('Task not found');
 
     const existingGoal = await prisma.goal.findFirst({
       where: {
@@ -37,7 +38,7 @@ export class GamificationService {
     });
 
     if (existingGoal) {
-      throw new Error('You already have an active goal for this task.');
+      throw AppError.conflict('You already have an active goal for this task.');
     }
 
     const startDate = new Date();
@@ -64,9 +65,6 @@ export class GamificationService {
       where: { userId, status: 'COMPLETED' },
     });
 
-    const unlockedBadges = [];
-
-    // Define task completion badge thresholds based on slug
     const badgeChecks = [
       { slug: 'achiever', required: 1 },
       { slug: 'hat_trick', required: 3 },
@@ -75,20 +73,31 @@ export class GamificationService {
       { slug: 'task_master', required: 50 },
     ];
 
+    // Batch load all relevant badges
+    const slugs = badgeChecks.map(b => b.slug);
+    const badges = await prisma.badge.findMany({
+      where: { slug: { in: slugs } },
+    });
+
+    // Batch load all existing user badges
+    const badgeIds = badges.map(b => b.id);
+    const existingUserBadges = await prisma.userBadge.findMany({
+      where: {
+        userId,
+        badgeId: { in: badgeIds },
+      },
+      select: { badgeId: true },
+    });
+
+    const existingBadgeIds = new Set(existingUserBadges.map(ub => ub.badgeId));
+    const unlockedBadges: string[] = [];
+
     for (const check of badgeChecks) {
       if (completedGoalsCount >= check.required) {
-        // Find badge ID
-        const badge = await prisma.badge.findUnique({ where: { slug: check.slug } });
+        const badge = badges.find(b => b.slug === check.slug);
         if (!badge) continue;
 
-        // Check if user already has it
-        const existing = await prisma.userBadge.findUnique({
-          where: {
-            userId_badgeId: { userId, badgeId: badge.id },
-          },
-        });
-
-        if (!existing) {
+        if (!existingBadgeIds.has(badge.id)) {
           await prisma.userBadge.create({
             data: { userId, badgeId: badge.id },
           });
@@ -100,3 +109,4 @@ export class GamificationService {
     return unlockedBadges;
   }
 }
+

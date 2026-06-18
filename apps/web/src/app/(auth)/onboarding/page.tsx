@@ -82,11 +82,13 @@ export default function OnboardingPage() {
             />
 
             <div className="flex flex-col gap-1.5 w-full">
-              <label className="text-sm font-medium text-text">
+              <label htmlFor="primaryTransport" className="text-sm font-medium text-text">
                 Primary Transport
               </label>
               <select
+                id="primaryTransport"
                 name="primaryTransport"
+                aria-label="Primary Transport"
                 className="select"
                 value={formData.primaryTransport}
                 onChange={handleChange}
@@ -101,11 +103,13 @@ export default function OnboardingPage() {
             </div>
 
             <div className="flex flex-col gap-1.5 w-full">
-              <label className="text-sm font-medium text-text">
+              <label htmlFor="dietaryPreference" className="text-sm font-medium text-text">
                 Dietary Preference
               </label>
               <select
+                id="dietaryPreference"
                 name="dietaryPreference"
+                aria-label="Dietary Preference"
                 className="select"
                 value={formData.dietaryPreference}
                 onChange={handleChange}
@@ -118,6 +122,7 @@ export default function OnboardingPage() {
                 <option value="vegan">Vegan</option>
               </select>
             </div>
+
 
           </CardContent>
           <CardFooter className="px-8 pb-8 pt-4">

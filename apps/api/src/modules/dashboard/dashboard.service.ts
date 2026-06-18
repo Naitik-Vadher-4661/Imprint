@@ -31,26 +31,29 @@ export class DashboardService {
     // Get true database average of all users in the same region
     let regionalAverageKg = 0;
     try {
-      const regionalUsers = await prisma.userProfile.findMany({
-        where: { country: region },
-        select: { userId: true }
+      const regionalUserCount = await prisma.userProfile.count({
+        where: { country: region }
       });
-      const userIds = regionalUsers.map(u => u.userId);
 
-      if (userIds.length > 0) {
+      if (regionalUserCount > 0) {
         const regionalEmissions = await prisma.activity.aggregate({
           where: {
-            userId: { in: userIds },
+            user: {
+              profile: {
+                country: region
+              }
+            },
             loggedAt: { gte: startDate }
           },
           _sum: { emissionKg: true }
         });
         const totalEmissions = regionalEmissions._sum.emissionKg || 0;
-        regionalAverageKg = totalEmissions / userIds.length;
+        regionalAverageKg = totalEmissions / regionalUserCount;
       }
     } catch (e) {
       console.error('Failed to calculate dynamic regional average:', e);
     }
+
 
     // Fallback to static defaults if no regional data is logged yet
     if (regionalAverageKg <= 0) {

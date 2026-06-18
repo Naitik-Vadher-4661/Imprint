@@ -2,29 +2,28 @@ import { redis } from '../config/redis';
 import { prisma } from '../config/database';
 import { MeasurementUnit } from '../types/enums';
 import { config } from '../config/env';
-// In a real implementation we would import from 'climatiq-js'
-// import { Climatiq } from 'climatiq-js';
+import { AppError } from './AppError';
+
+// Map subcategories to Climatiq activity IDs and parameters
+const CLIMATIQ_MAPPINGS: Record<string, { activityId: string; param: string; unit: string }> = {
+  car_petrol: { activityId: 'passenger_vehicle-vehicle_type_car-fuel_source_petrol', param: 'distance', unit: 'km' },
+  car_diesel: { activityId: 'passenger_vehicle-vehicle_type_car-fuel_source_diesel', param: 'distance', unit: 'km' },
+  car_electric: { activityId: 'passenger_vehicle-vehicle_type_car-fuel_source_electricity', param: 'distance', unit: 'km' },
+  bus: { activityId: 'passenger_vehicle-vehicle_type_bus-fuel_source_na', param: 'distance', unit: 'km' },
+  train: { activityId: 'passenger_vehicle-vehicle_type_train-fuel_source_na', param: 'distance', unit: 'km' },
+  electricity: { activityId: 'electricity-supply', param: 'energy', unit: 'kWh' },
+  natural_gas: { activityId: 'natural_gas-combustion', param: 'energy', unit: 'kWh' },
+  beef: { activityId: 'agriculture-livestock-cattle', param: 'weight', unit: 'kg' },
+  chicken: { activityId: 'agriculture-poultry-chicken', param: 'weight', unit: 'kg' },
+  general_waste: { activityId: 'waste-municipal_solid_waste', param: 'weight', unit: 'kg' },
+};
 
 // Real integration wrapper for ClimateIQ
 class ClimateIQService {
   async getFactor(subcategory: string, region: string): Promise<{ factor: number; unit: string } | null> {
     if (!config.CLIMATEIQ_API_KEY) return null;
 
-    // Map subcategories to Climatiq activity IDs and parameters
-    const mappings: Record<string, { activityId: string; param: string; unit: string }> = {
-      car_petrol: { activityId: 'passenger_vehicle-vehicle_type_car-fuel_source_petrol', param: 'distance', unit: 'km' },
-      car_diesel: { activityId: 'passenger_vehicle-vehicle_type_car-fuel_source_diesel', param: 'distance', unit: 'km' },
-      car_electric: { activityId: 'passenger_vehicle-vehicle_type_car-fuel_source_electricity', param: 'distance', unit: 'km' },
-      bus: { activityId: 'passenger_vehicle-vehicle_type_bus-fuel_source_na', param: 'distance', unit: 'km' },
-      train: { activityId: 'passenger_vehicle-vehicle_type_train-fuel_source_na', param: 'distance', unit: 'km' },
-      electricity: { activityId: 'electricity-supply', param: 'energy', unit: 'kWh' },
-      natural_gas: { activityId: 'natural_gas-combustion', param: 'energy', unit: 'kWh' },
-      beef: { activityId: 'agriculture-livestock-cattle', param: 'weight', unit: 'kg' },
-      chicken: { activityId: 'agriculture-poultry-chicken', param: 'weight', unit: 'kg' },
-      general_waste: { activityId: 'waste-municipal_solid_waste', param: 'weight', unit: 'kg' },
-    };
-
-    const mapping = mappings[subcategory];
+    const mapping = CLIMATIQ_MAPPINGS[subcategory];
     if (!mapping) return null;
 
     try {
@@ -108,7 +107,7 @@ export class EmissionFactorService {
     });
 
     if (!staticFactor) {
-      throw new Error(`No emission factor found for ${subcategory}`);
+      throw AppError.notFound(`No emission factor found for ${subcategory}`);
     }
 
     const result = {
@@ -123,3 +122,4 @@ export class EmissionFactorService {
     return result;
   }
 }
+

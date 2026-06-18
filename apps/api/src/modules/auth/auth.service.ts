@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { prisma } from '../../config/database';
 import { config } from '../../config/env';
+import { AppError } from '../../utils/AppError';
 
 export interface RegisterInput {
   email: string;
@@ -15,6 +16,15 @@ export interface LoginInput {
   password: string;
 }
 
+export interface UpdateProfileInput {
+  country?: string;
+  householdSize?: number | string;
+  primaryTransport?: string;
+  dietType?: string;
+  dietaryPreference?: string;
+  onboardingComplete?: boolean;
+}
+
 export class AuthService {
   static async register(data: RegisterInput) {
     const existingUser = await prisma.user.findUnique({
@@ -22,7 +32,7 @@ export class AuthService {
     });
 
     if (existingUser) {
-      throw { statusCode: 409, code: 'USER_EXISTS', message: 'Email already registered' };
+      throw new AppError('Email already registered', 409, 'USER_EXISTS');
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
@@ -48,7 +58,7 @@ export class AuthService {
     });
 
     if (!user || !(await bcrypt.compare(data.password, user.password))) {
-      throw { statusCode: 401, code: 'INVALID_CREDENTIALS', message: 'Invalid email or password' };
+      throw new AppError('Invalid email or password', 401, 'INVALID_CREDENTIALS');
     }
 
     const tokens = await this.generateTokens(user.id);
@@ -66,7 +76,7 @@ export class AuthService {
     return { user, profile };
   }
 
-  static async updateProfile(userId: string, data: any) {
+  static async updateProfile(userId: string, data: UpdateProfileInput) {
     const diet = data.dietType || data.dietaryPreference;
     const profile = await prisma.userProfile.update({
       where: { userId },
@@ -78,8 +88,13 @@ export class AuthService {
         onboardingComplete: data.onboardingComplete !== undefined ? !!data.onboardingComplete : undefined,
       },
     });
+    
+    // Invalidate dashboard cache
+    await prisma.dashboardCache.deleteMany({ where: { userId } });
+    
     return { profile };
   }
+
 
   private static async generateTokens(userId: string) {
     const accessToken = jwt.sign({ userId }, config.JWT_SECRET, {
@@ -106,3 +121,4 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 }
+

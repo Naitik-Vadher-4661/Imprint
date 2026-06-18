@@ -135,9 +135,11 @@ export const LogActivityForm = ({ onSuccess, onCancel }: LogActivityFormProps) =
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Category Select */}
         <div className="flex flex-col gap-1.5 w-full">
-          <label className="text-sm font-medium text-[var(--color-text-primary)]">Category</label>
+          <label htmlFor="categoryId" className="text-sm font-medium text-[var(--color-text-primary)]">Category</label>
           <select
+            id="categoryId"
             name="categoryId"
+            aria-label="Activity Category"
             className="h-10 rounded-md border border-[#d1d5db] bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)]"
             value={formData.categoryId}
             onChange={handleCategoryChange}
@@ -151,9 +153,11 @@ export const LogActivityForm = ({ onSuccess, onCancel }: LogActivityFormProps) =
 
         {/* Subcategory Select (Dropdown) */}
         <div className="flex flex-col gap-1.5 w-full">
-          <label className="text-sm font-medium text-[var(--color-text-primary)]">Subcategory</label>
+          <label htmlFor="subcategory" className="text-sm font-medium text-[var(--color-text-primary)]">Subcategory</label>
           <select
+            id="subcategory"
             name="subcategory"
+            aria-label="Activity Subcategory"
             className="h-10 rounded-md border border-[#d1d5db] bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)]"
             value={formData.subcategory}
             onChange={handleSubcategoryChange}
@@ -188,9 +192,11 @@ export const LogActivityForm = ({ onSuccess, onCancel }: LogActivityFormProps) =
             />
           </div>
           <div className="w-24 flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-[var(--color-text-primary)]">Unit</label>
+            <label htmlFor="unit" className="text-sm font-medium text-[var(--color-text-primary)]">Unit</label>
             <select
+              id="unit"
               name="unit"
+              aria-label="Measurement Unit"
               className="h-10 rounded-md border border-[#d1d5db] bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)]"
               value={formData.unit}
               onChange={handleChange}
@@ -206,6 +212,7 @@ export const LogActivityForm = ({ onSuccess, onCancel }: LogActivityFormProps) =
           </div>
         </div>
       </div>
+
 
       <div className="flex justify-end gap-2 pt-4">
         <Button type="button" variant="ghost" onClick={onCancel}>

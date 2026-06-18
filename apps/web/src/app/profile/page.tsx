@@ -160,9 +160,11 @@ export default function ProfilePage() {
                 onChange={handleChange}
               />
               <div className="flex flex-col gap-1.5 w-full">
-                <label className="text-sm font-medium text-text">Primary Transport</label>
+                <label htmlFor="primaryTransport" className="text-sm font-medium text-text">Primary Transport</label>
                 <select
+                  id="primaryTransport"
                   name="primaryTransport"
+                  aria-label="Primary Transport"
                   className="h-10 rounded-md border border-gray-200 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-forest/50"
                   value={formData.primaryTransport}
                   onChange={handleChange}
@@ -176,9 +178,11 @@ export default function ProfilePage() {
                 </select>
               </div>
               <div className="flex flex-col gap-1.5 w-full">
-                <label className="text-sm font-medium text-text">Dietary Preference</label>
+                <label htmlFor="dietType" className="text-sm font-medium text-text">Dietary Preference</label>
                 <select
+                  id="dietType"
                   name="dietType"
+                  aria-label="Dietary Preference"
                   className="h-10 rounded-md border border-gray-200 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-forest/50"
                   value={formData.dietType}
                   onChange={handleChange}
@@ -192,6 +196,7 @@ export default function ProfilePage() {
                   <option value="vegan">Vegan</option>
                 </select>
               </div>
+
             </div>
 
             <div className="flex justify-end pt-4">

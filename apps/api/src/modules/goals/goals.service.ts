@@ -1,6 +1,8 @@
 import { prisma } from '../../config/database';
 import { GoalStatus } from '../../types/enums';
 import { GamificationService } from '../gamification/gamification.service';
+import { CreateGoalInput } from './goals.schema';
+import { AppError } from '../../utils/AppError';
 
 export class GoalsService {
   static async getUserGoals(userId: string) {
@@ -10,18 +12,28 @@ export class GoalsService {
     });
   }
 
-  static async createGoal(userId: string, data: any) {
+  static async createGoal(userId: string, data: CreateGoalInput) {
     return prisma.goal.create({
       data: {
         userId,
-        ...data,
+        name: data.name,
+        description: data.description,
+        type: data.type,
+        targetValue: data.targetValue,
+        startDate: data.startDate ? new Date(data.startDate) : new Date(),
+        endDate: new Date(data.endDate),
+        presetId: data.presetId,
+        categoryId: data.categoryId,
+        baselineValue: data.baselineValue,
       },
     });
   }
 
   static async updateGoalProgress(userId: string, goalId: string, progressValue: number) {
     const goal = await prisma.goal.findUnique({ where: { id: goalId } });
-    if (!goal || goal.userId !== userId) throw new Error('Goal not found');
+    if (!goal || goal.userId !== userId) {
+      throw AppError.notFound('Goal not found');
+    }
 
     const newCurrentValue = goal.currentValue + progressValue;
     const newStatus: GoalStatus = newCurrentValue >= goal.targetValue
@@ -40,7 +52,9 @@ export class GoalsService {
 
   static async markGoalCompleted(userId: string, goalId: string) {
     const goal = await prisma.goal.findUnique({ where: { id: goalId } });
-    if (!goal || goal.userId !== userId) throw new Error('Goal not found');
+    if (!goal || goal.userId !== userId) {
+      throw AppError.notFound('Goal not found');
+    }
 
     const updated = await prisma.goal.update({
       where: { id: goalId },
@@ -55,3 +69,4 @@ export class GoalsService {
     return { goal: updated, newBadges };
   }
 }
+
