@@ -10,7 +10,20 @@ const app = express();
 app.use(helmet());
 app.use(
   cors({
-    origin: config.FRONTEND_URL === '*' ? true : config.FRONTEND_URL,
+    origin: (origin, callback) => {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+      const cleanOrigin = origin.replace(/\/$/, '');
+      const cleanFrontendUrl = config.FRONTEND_URL.replace(/\/$/, '');
+      const isLocal = cleanOrigin.startsWith('http://localhost:') || cleanOrigin.startsWith('http://127.0.0.1:');
+      if (cleanOrigin === cleanFrontendUrl || isLocal || config.FRONTEND_URL === '*') {
+        callback(null, true);
+      } else {
+        callback(new Error(`Origin ${origin} not allowed by CORS`));
+      }
+    },
     credentials: true,
   })
 );
