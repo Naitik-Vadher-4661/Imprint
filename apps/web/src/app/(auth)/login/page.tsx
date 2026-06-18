@@ -24,8 +24,8 @@ export default function LoginPage() {
     try {
       const response = await api.post('/auth/login', { email, password });
       const data = response.data;
-      localStorage.setItem('token', data.data.accessToken);
-      localStorage.setItem('userName', data.data.user.name);
+      sessionStorage.setItem('token', data.data.accessToken);
+      sessionStorage.setItem('userName', data.data.user.name);
       router.push('/dashboard');
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: { message?: string } } } };

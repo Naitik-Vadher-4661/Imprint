@@ -64,16 +64,40 @@ export class InsightsService {
       )
     );
 
-    return savedInsights;
+    return savedInsights.map(insight => {
+      try {
+        return {
+          ...insight,
+          content: JSON.parse(insight.content)
+        };
+      } catch (e) {
+        return insight;
+      }
+    });
   }
 
   static async getUserInsights(userId: string) {
-    return prisma.insight.findMany({
+    const insights = await prisma.insight.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
       take: 10
     });
+
+    return insights.map(insight => {
+      try {
+        return {
+          ...insight,
+          content: JSON.parse(insight.content)
+        };
+      } catch (e) {
+        return {
+          ...insight,
+          content: { title: 'Insight', description: insight.content, emissionSavedPotential: 0 }
+        };
+      }
+    });
   }
+
 
   static async markInsightAsActioned(userId: string, insightId: string) {
     // Verify ownership

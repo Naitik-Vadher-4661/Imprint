@@ -24,6 +24,7 @@ export default function GoalsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [completingId, setCompletingId] = useState<string | null>(null);
+  const [completedGoalData, setCompletedGoalData] = useState<{ name: string; targetValue: number; newBadges: string[] } | null>(null);
 
   const fetchGoals = async () => {
     try {
@@ -45,11 +46,11 @@ export default function GoalsPage() {
       // Update local state
       setGoals(prev => prev.map(g => g.id === goalId ? { ...g, ...goal } : g));
       
-      let message = `Goal "${goal.name}" completed successfully!`;
-      if (newBadges && newBadges.length > 0) {
-        message += `\n\n🎉 Congratulations! You unlocked new badge(s): ${newBadges.join(', ')}`;
-      }
-      alert(message);
+      setCompletedGoalData({
+        name: goal.name,
+        targetValue: goal.targetValue,
+        newBadges: newBadges || []
+      });
     } catch (err: unknown) {
       console.error('Failed to complete goal', err);
       const error = err as { response?: { data?: { error?: { message?: string } } } };
@@ -115,6 +116,63 @@ export default function GoalsPage() {
           </div>
         </div>
       )}
+
+      {/* ─── Goal Completion Success Modal ─── */}
+      {completedGoalData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl text-center relative overflow-hidden animate-fade-in-up border border-green-100">
+            <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-green-400 to-emerald-600"></div>
+            
+            <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6 text-green-600">
+              <Award className="w-12 h-12" />
+            </div>
+
+            <h2 className="text-3xl font-extrabold text-text mb-2 font-[family-name:var(--font-heading)]">Goal Completed!</h2>
+            <p className="text-text-secondary mb-6 text-base">
+              Fantastic work! You completed your goal: <strong className="text-forest">"{completedGoalData.name}"</strong>.
+            </p>
+
+            <div className="bg-green-50/50 border border-green-100/50 rounded-2xl p-5 mb-6 text-left">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-green-700 mb-3 flex items-center gap-1.5">
+                🌱 Environmental Impact
+              </h3>
+              <ul className="space-y-2.5 text-sm text-text-secondary">
+                <li className="flex items-start gap-2">
+                  <span className="text-base select-none">📉</span>
+                  <span><strong>{completedGoalData.targetValue.toFixed(1)} kg</strong> of CO₂e emissions avoided.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-base select-none">🌳</span>
+                  <span>Equivalent to planting <strong>{Math.max(1, Math.round(completedGoalData.targetValue / 1.8))}</strong> tree(s) absorbing CO₂ for an entire month!</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-base select-none">🚗</span>
+                  <span>Avoids the carbon footprint of driving a car for <strong>{Math.round(completedGoalData.targetValue / 0.4)}</strong> miles.</span>
+                </li>
+              </ul>
+            </div>
+
+            {completedGoalData.newBadges && completedGoalData.newBadges.length > 0 && (
+              <div className="bg-amber-50/50 border border-amber-100/50 rounded-2xl p-5 mb-6 text-left">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-amber-700 mb-2 flex items-center gap-1.5">
+                  🏆 New Badges Unlocked!
+                </h3>
+                <p className="text-sm text-text-secondary">
+                  You unlocked: <strong>{completedGoalData.newBadges.join(', ')}</strong>
+                </p>
+              </div>
+            )}
+
+            <Button 
+              onClick={() => setCompletedGoalData(null)} 
+              className="w-full text-md py-3 shadow-lg shadow-forest/20"
+            >
+              Keep it up!
+            </Button>
+          </div>
+        </div>
+      )}
+
 
       {goals.length === 0 ? (
         <Card className="border-dashed border-2 border-gray-200 bg-gray-50/50">

@@ -22,9 +22,9 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = React.useState<boolean | null>(null);
 
   React.useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     setIsAuthenticated(!!token);
-    setUserName(localStorage.getItem('userName') || '');
+    setUserName(sessionStorage.getItem('userName') || '');
 
     const protectedRoutes = ['/dashboard', '/activities', '/insights', '/goals', '/tasks', '/impact', '/city', '/profile'];
     if (!token && protectedRoutes.includes(pathname)) {

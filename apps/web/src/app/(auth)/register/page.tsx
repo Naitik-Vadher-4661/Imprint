@@ -25,8 +25,8 @@ export default function RegisterPage() {
     try {
       const response = await api.post('/auth/register', { name, email, password });
       const data = response.data;
-      localStorage.setItem('token', data.data.accessToken);
-      localStorage.setItem('userName', data.data.user.name);
+      sessionStorage.setItem('token', data.data.accessToken);
+      sessionStorage.setItem('userName', data.data.user.name);
       router.push('/onboarding');
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: { message?: string } } } };
