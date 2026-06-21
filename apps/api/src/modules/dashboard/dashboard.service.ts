@@ -36,46 +36,7 @@ export class DashboardService {
     const profile = await prisma.userProfile.findUnique({ where: { userId } });
     const region = profile?.country || 'global';
     
-    // Get true database average of all users in the same region
-    let regionalAverageKg = 0;
-    try {
-      const regionalUserCount = await prisma.userProfile.count({
-        where: { country: region }
-      });
-
-      if (regionalUserCount > 0) {
-        const regionalEmissions = await prisma.activity.aggregate({
-          where: {
-            user: {
-              profile: {
-                country: region
-              }
-            },
-            loggedAt: { gte: startDate }
-          },
-          _sum: { emissionKg: true }
-        });
-        const totalEmissions = regionalEmissions._sum.emissionKg || 0;
-        regionalAverageKg = totalEmissions / regionalUserCount;
-      }
-    } catch (error) {
-      console.error('Failed to calculate dynamic regional average:', error);
-    }
-
-
-    // Fallback to static defaults if no regional data is logged yet
-    if (regionalAverageKg <= 0) {
-      const regionalAverageMap: Record<string, number> = {
-        'United States': 1400,
-        'India': 150,
-        'global': 400,
-      };
-      regionalAverageKg = regionalAverageMap[region] || 400;
-      
-      // Scale average based on timeRange
-      if (timeRange === 'week') regionalAverageKg = regionalAverageKg / 4;
-      if (timeRange === 'year') regionalAverageKg = regionalAverageKg * 12;
-    }
+    const regionalAverageKg = await this.getRegionalAverageKg(region, timeRange, startDate);
 
     // 3. Aggregate Data
     const [totalEmissionsResult, categoryBreakdown, recentActivities] = await Promise.all([
@@ -129,5 +90,41 @@ export class DashboardService {
     });
 
     return result;
+  }
+
+  private static async getRegionalAverageKg(region: string, timeRange: 'week' | 'month' | 'year', startDate: Date): Promise<number> {
+    let regionalAverageKg = 0;
+    try {
+      const regionalUserCount = await prisma.userProfile.count({
+        where: { country: region }
+      });
+
+      if (regionalUserCount > 0) {
+        const regionalEmissions = await prisma.activity.aggregate({
+          where: {
+            user: { profile: { country: region } },
+            loggedAt: { gte: startDate }
+          },
+          _sum: { emissionKg: true }
+        });
+        const totalEmissions = regionalEmissions._sum.emissionKg || 0;
+        regionalAverageKg = totalEmissions / regionalUserCount;
+      }
+    } catch (error) {
+      console.error('Failed to calculate dynamic regional average:', error);
+    }
+
+    if (regionalAverageKg <= 0) {
+      const regionalAverageMap: Record<string, number> = {
+        'United States': 1400,
+        'India': 150,
+        'global': 400,
+      };
+      regionalAverageKg = regionalAverageMap[region] || 400;
+      
+      if (timeRange === 'week') regionalAverageKg = regionalAverageKg / 4;
+      if (timeRange === 'year') regionalAverageKg = regionalAverageKg * 12;
+    }
+    return regionalAverageKg;
   }
 }

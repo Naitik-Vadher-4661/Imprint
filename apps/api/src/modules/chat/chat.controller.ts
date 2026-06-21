@@ -32,24 +32,7 @@ export class ChatController {
       });
 
       // Fetch dashboard summary for context
-      let summaryText = '';
-      try {
-        const summary = await DashboardService.getSummary(userId, 'month');
-        const total = summary.totalEmissionKg || 0;
-        const avg = summary.regionalAverageKg || 0;
-        const comparisonPercentage = avg > 0 ? ((total - avg) / avg) * 100 : 0;
-
-        summaryText = `
-User's Monthly Carbon Footprint Stats:
-- Total Emissions: ${total.toFixed(1)} kg CO2e
-- Regional Average: ${avg.toFixed(1)} kg CO2e
-- Comparison: ${comparisonPercentage ? `${comparisonPercentage > 0 ? '+' : ''}${comparisonPercentage.toFixed(1)}%` : '0%'} compared to regional average
-- Category breakdown:
-${summary.categoryBreakdown?.map((c: { category: string; totalKg: number }) => `  * ${c.category}: ${c.totalKg?.toFixed(1) || 0} kg CO2e`).join('\n') || '  No logged emissions.'}
-`;
-      } catch (err) {
-        console.warn('Failed to load dashboard summary for chat context:', err);
-      }
+      const summaryText = await this.buildSummaryText(userId);
 
       const systemInstruction = `You are Imprint Assistant, a friendly and premium AI coach integrated directly inside Imprint, a carbon footprint tracking and gamified eco-sustainability web app.
 
@@ -73,16 +56,7 @@ Conversation Guidelines:
 - Never make up information. If you don't know the answer, politely guide them to app features.`;
 
       // Sanitize history and enforce structure
-      let sanitizedHistory: Array<{ role: 'user' | 'assistant'; content: string }> = [];
-      if (history && Array.isArray(history)) {
-        sanitizedHistory = history
-          .filter((h: { role?: unknown; content?: unknown }) => h && typeof h.content === 'string' && (h.role === 'user' || h.role === 'assistant'))
-          .map((h: { role: string; content: string }) => ({
-            role: h.role as 'user' | 'assistant',
-            // eslint-disable-next-line no-control-regex
-            content: h.content.replace(/[\u0000-\u001F\u007F-\u009F]/g, "").trim().substring(0, 2000)
-          }));
-      }
+      const sanitizedHistory = this.sanitizeHistory(history);
 
       // Build chat conversation prompt including history
       let prompt = '';
@@ -101,6 +75,39 @@ Conversation Guidelines:
     } catch (error) {
       next(error);
     }
+  }
+
+  private static async buildSummaryText(userId: string): Promise<string> {
+    try {
+      const summary = await DashboardService.getSummary(userId, 'month');
+      const total = summary.totalEmissionKg || 0;
+      const avg = summary.regionalAverageKg || 0;
+      const comparisonPercentage = avg > 0 ? ((total - avg) / avg) * 100 : 0;
+      const compStr = comparisonPercentage ? `${comparisonPercentage > 0 ? '+' : ''}${comparisonPercentage.toFixed(1)}%` : '0%';
+
+      return `
+User's Monthly Carbon Footprint Stats:
+- Total Emissions: ${total.toFixed(1)} kg CO2e
+- Regional Average: ${avg.toFixed(1)} kg CO2e
+- Comparison: ${compStr} compared to regional average
+- Category breakdown:
+${summary.categoryBreakdown?.map((c: { category: string; totalKg: number }) => `  * ${c.category}: ${c.totalKg?.toFixed(1) || 0} kg CO2e`).join('\n') || '  No logged emissions.'}
+`;
+    } catch (err) {
+      console.warn('Failed to load dashboard summary for chat context:', err);
+      return '';
+    }
+  }
+
+  private static sanitizeHistory(history: unknown): Array<{ role: 'user' | 'assistant'; content: string }> {
+    if (!history || !Array.isArray(history)) return [];
+    return history
+      .filter((h: { role?: unknown; content?: unknown }) => h && typeof h.content === 'string' && (h.role === 'user' || h.role === 'assistant'))
+      .map((h: { role: string; content: string }) => ({
+        role: h.role as 'user' | 'assistant',
+        // eslint-disable-next-line no-control-regex
+        content: h.content.replace(/[\u0000-\u001F\u007F-\u009F]/g, "").trim().substring(0, 2000)
+      }));
   }
 }
 

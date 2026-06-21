@@ -13,5 +13,8 @@
     "start": "npm run start --workspaces",
     "lint": "npm run lint --workspaces",
     "typecheck": "npm run typecheck --workspaces"
+  },
+  "devDependencies": {
+    "eslint-plugin-sonarjs": "^0.24.0"
   }
 }
