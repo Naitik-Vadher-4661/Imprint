@@ -53,7 +53,8 @@ describe('CreateGoalSchema', () => {
   });
 
   it('should reject missing endDate', () => {
-    const { endDate, ...goalWithoutEnd } = validGoal;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { endDate: _endDate, ...goalWithoutEnd } = validGoal;
     const result = CreateGoalSchema.safeParse(goalWithoutEnd);
     expect(result.success).toBe(false);
   });

@@ -1,6 +1,6 @@
 import { DashboardService } from '../dashboard.service';
 import { prisma } from '../../../config/database';
-import { redis } from '../../../config/redis';
+
 
 jest.mock('../../../config/database', () => ({
   prisma: {

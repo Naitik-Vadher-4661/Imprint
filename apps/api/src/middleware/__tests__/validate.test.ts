@@ -77,7 +77,7 @@ describe('validate middleware', () => {
     it('should forward non-Zod errors to next()', async () => {
       const badSchema = {
         parseAsync: jest.fn().mockRejectedValue(new Error('unexpected')),
-      } as any;
+      } as unknown as z.AnyZodObject;
 
       const mockReq = { body: {} } as Request;
 

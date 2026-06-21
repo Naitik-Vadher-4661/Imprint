@@ -60,7 +60,7 @@ export const redis = {
     }
     return 'OK';
   },
-  on: (event: string, handler: (...args: any[]) => void) => {
+  on: (event: string, handler: (...args: unknown[]) => void) => {
     if (redisClient) {
       redisClient.on(event, handler);
     }

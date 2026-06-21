@@ -6,12 +6,12 @@ type ApiResponse<T> = {
   error?: {
     code: string;
     message: string;
-    details?: any;
+    details?: unknown;
   };
-  meta?: any;
+  meta?: unknown;
 };
 
-export const sendSuccess = <T>(res: Response, data: T, statusCode = 200, meta?: any) => {
+export const sendSuccess = <T>(res: Response, data: T, statusCode = 200, meta?: unknown) => {
   const response: ApiResponse<T> = {
     success: true,
     data,
@@ -25,7 +25,7 @@ export const sendError = (
   message: string,
   statusCode = 400,
   code = 'BAD_REQUEST',
-  details?: any
+  details?: unknown
 ) => {
   const response: ApiResponse<null> = {
     success: false,

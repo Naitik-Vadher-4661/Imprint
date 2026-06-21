@@ -16,7 +16,7 @@ export class ActivityController {
 
   static async getActivities(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      const { skip, take, page, limit } = getPagination(req.query as any);
+      const { skip, take, page, limit } = getPagination(req.query as unknown as Record<string, string>);
       const { items, total } = await ActivityService.getActivities(req.user!.userId, skip, take);
       
       return sendSuccess(res, createPaginatedResult(items, total, page, limit));

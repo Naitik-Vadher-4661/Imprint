@@ -205,7 +205,8 @@ async function main() {
     const categoryId = categoryMap.get(ef.categorySlug);
     if (!categoryId) continue;
 
-    const { categorySlug, ...efData } = ef;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { categorySlug: _categorySlug, ...efData } = ef;
     await prisma.emissionFactor.upsert({
       where: {
         categoryId_subcategory_region: {

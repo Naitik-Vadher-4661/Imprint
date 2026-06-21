@@ -7,7 +7,7 @@ export const errorHandler = (
   err: Error & { statusCode?: number; code?: string; isOperational?: boolean; details?: unknown },
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ) => {
   console.error('❌ Error:', err);
 

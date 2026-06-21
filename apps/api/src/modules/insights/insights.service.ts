@@ -3,6 +3,14 @@ import { AiProvider } from '../../utils/aiProvider';
 import { InsightType, InsightSource } from '../../types/enums';
 
 export class InsightsService {
+  /**
+   * Generates personalized sustainability insights for a user based on their last 30 days of activities.
+   * Utilizes an AI Provider to analyze the user's profile and activity footprint.
+   * 
+   * @param userId - The ID of the user to generate insights for
+   * @returns An array of generated and saved insights, or null if user not found
+   * @throws AppError if no activities are logged
+   */
   static async generateInsightsForUser(userId: string) {
     // 1. Fetch user data (activities from past 30 days)
     const thirtyDaysAgo = new Date();
@@ -39,15 +47,14 @@ export class InsightsService {
     `;
 
     // 3. Generate Insights via AI Provider (Gemini -> Groq Fallback)
-    const generatedResult = await AiProvider.generateJson(prompt);
-    const generatedInsights = generatedResult.insights || generatedResult;
+    const generatedResult = await AiProvider.generateJson(prompt) as { insights?: any[] } | any[];
+    const generatedInsights = (Array.isArray(generatedResult) ? generatedResult : generatedResult.insights) || [];
 
     // 4. Save Insights to DB — content is stored as JSON
-    const now = new Date();
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
     const savedInsights = await Promise.all(
-      generatedInsights.map((insight: any) => 
+      generatedInsights.map((insight: { type?: string; title?: string; description?: string; emissionSavedPotential?: number }) => 
         prisma.insight.create({
           data: {
             userId,
@@ -64,13 +71,13 @@ export class InsightsService {
       )
     );
 
-    return savedInsights.map(insight => {
+    return savedInsights.map((insight: any) => {
       try {
         return {
           ...insight,
           content: JSON.parse(insight.content)
         };
-      } catch (e) {
+      } catch {
         return insight;
       }
     });
@@ -89,7 +96,7 @@ export class InsightsService {
           ...insight,
           content: JSON.parse(insight.content)
         };
-      } catch (e) {
+      } catch {
         return {
           ...insight,
           content: { title: 'Insight', description: insight.content, emissionSavedPotential: 0 }

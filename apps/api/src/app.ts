@@ -18,7 +18,10 @@ app.use(
       const cleanOrigin = origin.replace(/\/$/, '');
       const cleanFrontendUrl = config.FRONTEND_URL.replace(/\/$/, '');
       const isLocal = cleanOrigin.startsWith('http://localhost:') || cleanOrigin.startsWith('http://127.0.0.1:');
-      if (cleanOrigin === cleanFrontendUrl || isLocal || config.FRONTEND_URL === '*') {
+      
+      if (cleanOrigin === cleanFrontendUrl) {
+        callback(null, true);
+      } else if (config.NODE_ENV !== 'production' && (isLocal || config.FRONTEND_URL === '*')) {
         callback(null, true);
       } else {
         callback(new Error(`Origin ${origin} not allowed by CORS`));

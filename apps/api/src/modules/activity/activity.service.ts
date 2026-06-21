@@ -1,6 +1,6 @@
 import { prisma } from '../../config/database';
 import { CarbonCalculator } from '../../utils/carbonCalculator';
-import { CreateActivityInput, UpdateActivityInput } from './activity.schema';
+import { CreateActivityInput } from './activity.schema';
 import { AppError } from '../../utils/AppError';
 
 export class ActivityService {

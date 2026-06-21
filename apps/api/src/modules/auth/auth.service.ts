@@ -35,7 +35,7 @@ export class AuthService {
       throw new AppError('Email already registered', 409, 'USER_EXISTS');
     }
 
-    const hashedPassword = await bcrypt.hash(data.password, 10);
+    const hashedPassword = await bcrypt.hash(data.password, 12);
 
     const user = await prisma.user.create({
       data: {
@@ -97,16 +97,15 @@ export class AuthService {
 
 
   private static async generateTokens(userId: string) {
-    const accessToken = jwt.sign({ userId }, config.JWT_SECRET, {
+    const accessToken = jwt.sign({ userId }, config.JWT_SECRET as string, {
       expiresIn: config.JWT_ACCESS_TTL as any,
     });
 
-    const refreshToken = jwt.sign({ userId }, config.JWT_REFRESH_SECRET, {
+    const refreshToken = jwt.sign({ userId }, config.JWT_REFRESH_SECRET as string, {
       expiresIn: config.JWT_REFRESH_TTL as any,
     });
 
-    // Hash the refresh token before storing it
-    const tokenHash = await bcrypt.hash(refreshToken, 10);
+    const tokenHash = await bcrypt.hash(refreshToken, 12);
     const tokenFamily = crypto.randomUUID();
 
     await prisma.refreshToken.create({

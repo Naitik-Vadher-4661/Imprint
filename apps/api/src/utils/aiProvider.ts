@@ -6,7 +6,7 @@ export class AiProvider {
    * Generates AI text using Gemini with a fallback to Groq.
    * Expects a JSON response based on the prompt.
    */
-  static async generateJson(prompt: string): Promise<any> {
+  static async generateJson(prompt: string): Promise<unknown> {
     try {
       // Primary: Google Gemini
       const result = await geminiModel.generateContent(prompt);
@@ -51,7 +51,7 @@ export class AiProvider {
       console.warn('⚠️ Gemini API failed for text, falling back to Groq API', geminiError);
 
       try {
-        const messages: any[] = [];
+        const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [];
         if (systemInstruction) {
           messages.push({ role: 'system', content: systemInstruction });
         }

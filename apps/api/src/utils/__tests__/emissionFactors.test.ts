@@ -1,7 +1,7 @@
 import { EmissionFactorService } from '../emissionFactors';
 import { redis } from '../../config/redis';
 import { prisma } from '../../config/database';
-import { config } from '../../config/env';
+
 
 jest.mock('../../config/redis', () => ({
   redis: {

@@ -52,9 +52,9 @@ class ClimateIQService {
         return null;
       }
 
-      const data: any = await response.json();
+      const data = await response.json() as { co2e?: number };
       return {
-        factor: data.co2e,
+        factor: data.co2e || 0,
         unit: mapping.unit.toUpperCase(),
       };
     } catch (err) {

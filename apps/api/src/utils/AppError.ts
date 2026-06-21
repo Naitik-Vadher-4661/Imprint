@@ -11,14 +11,14 @@ export class AppError extends Error {
   public readonly statusCode: number;
   public readonly code: string;
   public readonly isOperational: boolean;
-  public readonly details: any;
+  public readonly details: unknown;
 
   constructor(
     message: string,
     statusCode: number = 400,
     code: string = 'BAD_REQUEST',
     isOperational: boolean = true,
-    details: any = null
+    details: unknown = null
   ) {
     super(message);
     this.statusCode = statusCode;

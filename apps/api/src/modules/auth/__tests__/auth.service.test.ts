@@ -62,7 +62,7 @@ describe('AuthService', () => {
       });
 
       expect(prisma.user.findUnique).toHaveBeenCalledWith({ where: { email: 'test@example.com' } });
-      expect(bcrypt.hash).toHaveBeenCalledWith('password', 10);
+      expect(bcrypt.hash).toHaveBeenCalledWith('password', 12);
       expect(prisma.user.create).toHaveBeenCalledWith({
         data: {
           email: 'test@example.com',

@@ -1,7 +1,15 @@
 import { prisma } from '../../config/database';
-import { redis } from '../../config/redis';
+
 
 export class DashboardService {
+  /**
+   * Retrieves the comprehensive dashboard summary for a user, including total emissions,
+   * regional averages, and category breakdown. Utilizes caching for performance.
+   * 
+   * @param userId - The ID of the user
+   * @param timeRange - The time period to summarize ('week', 'month', 'year')
+   * @returns Dashboard summary data including emissions and recent activities
+   */
   static async getSummary(userId: string, timeRange: 'week' | 'month' | 'year' = 'month') {
     const cacheKey = `dashboard:summary:${timeRange}`;
     
@@ -13,7 +21,7 @@ export class DashboardService {
     if (cached && cached.expiresAt > new Date()) {
       try {
         return JSON.parse(cached.data);
-      } catch (e) {
+      } catch {
         return cached.data;
       }
     }
@@ -50,8 +58,8 @@ export class DashboardService {
         const totalEmissions = regionalEmissions._sum.emissionKg || 0;
         regionalAverageKg = totalEmissions / regionalUserCount;
       }
-    } catch (e) {
-      console.error('Failed to calculate dynamic regional average:', e);
+    } catch (error) {
+      console.error('Failed to calculate dynamic regional average:', error);
     }
 
 

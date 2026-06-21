@@ -1,6 +1,6 @@
 import { AiProvider } from '../aiProvider';
 import { geminiModel, genAI } from '../../config/gemini';
-import { groq, groqConfig } from '../../config/groq';
+import { groq } from '../../config/groq';
 
 jest.mock('../../config/gemini', () => ({
   geminiModel: {
