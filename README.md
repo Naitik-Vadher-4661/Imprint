@@ -4,8 +4,6 @@
 
 *Built for Google Prompt Wars! 🚀*
 
-> [!NOTE]  
-> **Deployment is still coming soon!** Currently, Imprint is being showcased locally. Stay tuned for the live web application!
 
 ## ✨ Features
 
